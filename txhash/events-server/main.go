@@ -1,36 +1,58 @@
 package main
 
 import (
-	"flag"
-	"fmt"
-	"os"
-	"context"
-	"github.com/ethereum/go-ethereum/ethclient"
+
+)
+import (
+	"github.com/TxHash/go-ethereum/txhash/events-server/clientsetup"
+	//"os"
 	"log"
+	//"math/big"
+	"context"
+	"fmt"
+	"github.com/ethereum/go-ethereum/core/types"
 )
 
-var serverMode = flag.String("serverMode","production","Set to 'testing' to enable debug access.")
-var server = flag.String("host", "http://localhost:8545", "Set server host.")
-
-
 func main() {
-	flag.Parse()
-
 	ctx := context.Background()
+	headerChan := make(chan *types.Header)
 
-	Cl, err := ethclient.Dial(*server)
+	subscription, err := clientsetup.Cl.SubscribeNewHead(ctx, headerChan)
 	if err != nil {
-		log.Panic("Connection Error: ", err)
+		log.Panic("Header Subscription Fail: ", err)
+	}
+	defer subscription.Unsubscribe()
+
+	for i := 1; i < 10; i++ {
+		header := <- headerChan
+		fmt.Print(*header, "\n")
 	}
 
-	prog, err := Cl.SyncProgress(ctx)
+	/*ctx := context.Background()
+
+	num := big.NewInt(5200000)
+	block, err := clientsetup.Cl.BlockByNumber(ctx, num)
 	if err != nil {
-		log.Panic("Error Fetching Sync Status: ", err)
+		log.Panic("Block Fetch Error: ", err)
 	}
 
-	if prog == nil {
-		fmt.Fprint(os.Stdout, "Syncing complete!\n")
-	} else {
-		fmt.Fprint(os.Stdout, "Current Block: ", prog.CurrentBlock, "\nHighestBlock: ", prog.HighestBlock)
-	}
+	txs := block.Transactions()
+
+	for _, t := range txs {
+		receipt, err := clientsetup.Cl.TransactionReceipt(ctx, t.Hash())
+		if err != nil {
+			log.Panic("Receipt Error: ", err)
+		}
+		for _, lg := range receipt.Logs {
+			b, err := lg.MarshalJSON()
+			if err != nil {
+				log.Panic("JSON Marshalling Error: ", err)
+			}
+			_, err = os.Stdout.Write(b)
+			if err != nil {
+				log.Panic("Error Writing Output: ", err)
+			}
+			fmt.Print("\n")
+		}
+	}*/
 }
