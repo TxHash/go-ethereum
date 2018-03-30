@@ -14,7 +14,6 @@ var Cl *ethclient.Client
 func init() {
 	flag.Parse()
 
-	//fmt.Print(*server)
 	cl, err := ethclient.Dial(*server)
 	if err != nil {
 		log.Panic("Connection Error: ", err)

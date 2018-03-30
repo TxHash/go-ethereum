@@ -11,6 +11,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/ethereum/go-ethereum/core/types"
+	"os"
 )
 
 func main() {
@@ -24,35 +25,32 @@ func main() {
 	defer subscription.Unsubscribe()
 
 	for i := 1; i < 10; i++ {
-		header := <- headerChan
-		fmt.Print(*header, "\n")
-	}
-
-	/*ctx := context.Background()
-
-	num := big.NewInt(5200000)
-	block, err := clientsetup.Cl.BlockByNumber(ctx, num)
-	if err != nil {
-		log.Panic("Block Fetch Error: ", err)
-	}
-
-	txs := block.Transactions()
-
-	for _, t := range txs {
-		receipt, err := clientsetup.Cl.TransactionReceipt(ctx, t.Hash())
+		header := <-headerChan
+		fmt.Print(header, "\n")
+		num := header.Number
+		block, err := clientsetup.Cl.BlockByNumber(ctx, num)
 		if err != nil {
-			log.Panic("Receipt Error: ", err)
+			log.Panic("Block Fetch Error: ", err)
 		}
-		for _, lg := range receipt.Logs {
-			b, err := lg.MarshalJSON()
+
+		txs := block.Transactions()
+
+		for _, t := range txs {
+			receipt, err := clientsetup.Cl.TransactionReceipt(ctx, t.Hash())
 			if err != nil {
-				log.Panic("JSON Marshalling Error: ", err)
+				log.Panic("Receipt Error: ", err)
 			}
-			_, err = os.Stdout.Write(b)
-			if err != nil {
-				log.Panic("Error Writing Output: ", err)
+			for _, lg := range receipt.Logs {
+				b, err := lg.MarshalJSON()
+				if err != nil {
+					log.Panic("JSON Marshalling Error: ", err)
+				}
+				_, err = os.Stdout.Write(b)
+				if err != nil {
+					log.Panic("Error Writing Output: ", err)
+				}
+				fmt.Print("\n")
 			}
-			fmt.Print("\n")
 		}
-	}*/
+	}
 }
